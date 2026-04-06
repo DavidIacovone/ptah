@@ -1,0 +1,44 @@
+{
+  "name": "ptah",
+  "version": "0.1.0",
+  "description": "Meta-orchestration framework for cross-repository AI coding coordination",
+  "type": "module",
+  "bin": {
+    "ptah": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "templates",
+    "scripts"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "tsup",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai",
+    "orchestration",
+    "multi-repo",
+    "cross-repo",
+    "gemini-cli",
+    "claude-code",
+    "coding-assistant"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
