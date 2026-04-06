@@ -8,10 +8,10 @@ Ptah extends AI coding tools (Gemini CLI, Claude Code) with skills for managing 
 
 ```bash
 # Install globally
-npm install -g ptah
+npm install -g @davidiacovone/ptah
 
 # Or use directly with npx
-npx ptah init my-project
+npx @davidiacovone/ptah init my-project
 ```
 
 **Requirements:** Node.js 18+
@@ -19,8 +19,8 @@ npx ptah init my-project
 ## Quick Start
 
 ```bash
-# 1. Create a project
-ptah init my-ecommerce --cli-tool gemini-cli
+# 1. Create a project (after global install, "ptah" works directly)
+npx @davidiacovone/ptah init my-ecommerce --cli-tool gemini-cli
 
 # 2. Open your AI tool and use skill commands
 # Inside Gemini CLI or Claude Code:

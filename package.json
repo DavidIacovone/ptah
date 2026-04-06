@@ -1,5 +1,5 @@
 {
-  "name": "ptah",
+  "name": "@davidiacovone/ptah",
   "version": "0.1.0",
   "description": "Meta-orchestration framework for cross-repository AI coding coordination",
   "type": "module",
@@ -10,7 +10,7 @@
     "dist",
     "skills",
     "templates",
-    "scripts"
+    "README.md"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts",
@@ -25,10 +25,22 @@
     "cross-repo",
     "gemini-cli",
     "claude-code",
-    "coding-assistant"
+    "coding-assistant",
+    "meta-orchestration"
   ],
-  "author": "",
+  "author": "David Iacovone <dayz9999>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DavidIacovone/ptah.git"
+  },
+  "homepage": "https://github.com/DavidIacovone/ptah#readme",
+  "bugs": {
+    "url": "https://github.com/DavidIacovone/ptah/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "zod": "^3.23.0"
   },
