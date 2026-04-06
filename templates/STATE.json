@@ -1,0 +1,13 @@
+{
+  "lifecycle": "idle",
+  "repos_registered": 0,
+  "contracts_discovered": 0,
+  "current_plan": null,
+  "tasks": {
+    "total": 0,
+    "completed": 0,
+    "failed": 0,
+    "current_wave": 0
+  },
+  "last_session": null
+}

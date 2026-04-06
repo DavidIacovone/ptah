@@ -1,0 +1,7 @@
+{
+  "cli_tool": "gemini-cli",
+  "max_tokens": 200000,
+  "mode": "safe",
+  "created_at": "",
+  "ptah_version": ""
+}
