@@ -5,16 +5,18 @@
  * All write operations validate before persisting.
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { basename, join } from 'node:path';
 import { ZodError } from 'zod';
 import {
   ProjectConfigSchema,
   ProjectStateSchema,
   GlobalConfigSchema,
+  RepoProfileSchema,
   type ProjectConfig,
   type ProjectState,
   type GlobalConfig,
+  type RepoProfile,
 } from './schemas.js';
 import { getProjectDir, getGlobalConfigPath, getPtahHome } from './paths.js';
 
@@ -128,4 +130,97 @@ export function readGlobalConfig(ptahHome?: string): GlobalConfig {
   }
 
   return result.data;
+}
+
+// ── Repo Profiles ──────────────────────────────────────────────
+
+function getReposDir(projectName: string, ptahHome?: string): string {
+  return join(getProjectDir(projectName, ptahHome), 'repos');
+}
+
+function getRepoProfilePath(projectName: string, repoName: string, ptahHome?: string): string {
+  return join(getReposDir(projectName, ptahHome), `${repoName}.json`);
+}
+
+export function writeRepoProfile(
+  projectName: string,
+  profile: RepoProfile,
+  ptahHome?: string
+): void {
+  const reposDir = getReposDir(projectName, ptahHome);
+  mkdirSync(reposDir, { recursive: true });
+
+  const filePath = getRepoProfilePath(projectName, profile.name, ptahHome);
+
+  const result = RepoProfileSchema.safeParse(profile);
+  if (!result.success) {
+    throw new Error(formatZodError(result.error, filePath));
+  }
+
+  writeFileSync(filePath, JSON.stringify(result.data, null, 2));
+}
+
+export function readRepoProfile(
+  projectName: string,
+  repoName: string,
+  ptahHome?: string
+): RepoProfile {
+  const filePath = getRepoProfilePath(projectName, repoName, ptahHome);
+
+  if (!existsSync(filePath)) {
+    throw new Error(`Repo profile not found: ${filePath}`);
+  }
+
+  const raw = JSON.parse(readFileSync(filePath, 'utf-8'));
+  const result = RepoProfileSchema.safeParse(raw);
+
+  if (!result.success) {
+    throw new Error(formatZodError(result.error, filePath));
+  }
+
+  return result.data;
+}
+
+export function listRepoProfiles(
+  projectName: string,
+  ptahHome?: string
+): RepoProfile[] {
+  const reposDir = getReposDir(projectName, ptahHome);
+
+  if (!existsSync(reposDir)) {
+    return [];
+  }
+
+  const files = readdirSync(reposDir).filter((f) => f.endsWith('.json'));
+  const profiles: RepoProfile[] = [];
+
+  for (const file of files) {
+    const filePath = join(reposDir, file);
+    try {
+      const raw = JSON.parse(readFileSync(filePath, 'utf-8'));
+      const result = RepoProfileSchema.safeParse(raw);
+      if (result.success) {
+        profiles.push(result.data);
+      }
+    } catch {
+      // Skip invalid profile files
+    }
+  }
+
+  return profiles;
+}
+
+export function deleteRepoProfile(
+  projectName: string,
+  repoName: string,
+  ptahHome?: string
+): boolean {
+  const filePath = getRepoProfilePath(projectName, repoName, ptahHome);
+
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  unlinkSync(filePath);
+  return true;
 }

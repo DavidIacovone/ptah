@@ -22,6 +22,12 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'register': {
+      const { runRegister } = await import('./commands/register.js');
+      await runRegister(args.slice(1));
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
@@ -54,6 +60,7 @@ USAGE
 COMMANDS
   init              Initialize a new Ptah project
   list              List all configured projects
+  register          Register a repository with a project
   help              Show this help message
 
 OPTIONS
@@ -61,9 +68,12 @@ OPTIONS
   -h, --help        Show this help message
 
 SKILL COMMANDS (run within AI tools)
-  ptah:init         Interactive project initialization
+  ptah:init         Interactive project setup guide
   ptah:help         Show skill command reference
-  ptah:status       Show project ecosystem status
+  ptah:status       Show workspace status
+  ptah:register     Register a repository
+  ptah:learn        Scan ecosystem structure
+  ptah:discover     Discover cross-repo contracts
 `);
 }
 
