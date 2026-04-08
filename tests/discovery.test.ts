@@ -3,102 +3,85 @@ import { discoverContracts } from '../src/lib/ecosystem/discovery.js';
 import { RepoProfile } from '../src/lib/schemas.js';
 
 describe('discovery', () => {
-  const profiles: RepoProfile[] = [
+  const mockProfiles: RepoProfile[] = [
     {
-      name: 'auth-service',
-      path: '/path/to/auth-service',
-      role: 'Identity provider',
+      name: 'api-service',
+      path: '/path/to/api',
+      role: 'backend',
       framework: 'NestJS',
       language: 'TypeScript',
       key_directories: ['src'],
-      exports_summary: 'POST /auth/login\nPOST /auth/register',
-      dependencies: ['@nestjs/core', 'jose'],
-      tech_fingerprint: {
-        api_style: 'REST',
-        orm: 'TypeORM',
-        test_framework: 'Jest',
-        ci: 'GitHub Actions'
-      },
-      registered_at: '2026-04-07T00:00:00Z',
-      learned_at: '2026-04-07T00:00:00Z'
+      exports_summary: 'POST /users, GET /users/:id',
+      dependencies: [],
+      tech_fingerprint: { api_style: 'REST', orm: 'TypeORM', test_framework: 'jest', ci: 'github' },
+      registered_at: '2026-04-08T10:00:00Z',
+      learned_at: '2026-04-08T10:05:00Z'
     },
     {
       name: 'web-app',
-      path: '/path/to/web-app',
-      role: 'Frontend app',
-      framework: 'React',
+      path: '/path/to/web',
+      role: 'frontend calling api-service',
+      framework: 'Next.js',
       language: 'TypeScript',
       key_directories: ['src'],
       exports_summary: '',
-      dependencies: ['react', 'auth-service'], // Explicit dependency on 'auth-service'
-      tech_fingerprint: {
-        api_style: 'REST',
-        orm: null,
-        test_framework: 'Vitest',
-        ci: 'GitHub Actions'
-      },
-      registered_at: '2026-04-07T00:00:00Z',
-      learned_at: '2026-04-07T00:00:00Z'
+      dependencies: ['api-service'],
+      tech_fingerprint: { api_style: null, orm: null, test_framework: 'vitest', ci: 'github' },
+      registered_at: '2026-04-08T10:01:00Z',
+      learned_at: '2026-04-08T10:06:00Z'
     },
     {
-      name: 'user-profile',
-      path: '/path/to/user-profile',
-      role: 'User management',
-      framework: 'Express',
+      name: 'shared-ui',
+      path: '/path/to/ui',
+      role: 'shared-lib',
+      framework: 'React',
       language: 'TypeScript',
       key_directories: ['src'],
-      exports_summary: 'GET /profile/:id',
-      dependencies: ['express'],
-      tech_fingerprint: {
-        api_style: 'REST',
-        orm: 'Prisma',
-        test_framework: 'Jest',
-        ci: 'GitLab'
-      },
-      registered_at: '2026-04-07T00:00:00Z',
-      learned_at: '2026-04-07T00:00:00Z'
+      exports_summary: 'Button, Card, Input',
+      dependencies: [],
+      tech_fingerprint: { api_style: null, orm: null, test_framework: 'vitest', ci: 'github' },
+      registered_at: '2026-04-08T10:02:00Z',
+      learned_at: '2026-04-08T10:07:00Z'
     }
   ];
 
-  it('should detect explicit dependencies from package.json', () => {
-    const contracts = discoverContracts(profiles);
-    const authContract = contracts.find(c => c.provider === 'auth-service' && c.consumer === 'web-app');
-    
-    expect(authContract).toBeDefined();
-    expect(authContract?.confidence).toBe(1.0);
-    expect(authContract?.type).toBe('npm dependency');
+  it('detects explicit npm dependencies with 1.0 confidence', () => {
+    const contracts = discoverContracts(mockProfiles);
+    const explicit = contracts.find(c => c.provider === 'api-service' && c.consumer === 'web-app');
+    expect(explicit).toBeDefined();
+    expect(explicit?.confidence).toBe(1.0);
+    expect(explicit?.type).toBe('npm dependency');
   });
 
-  it('should detect potential dependencies from role matching', () => {
-     // user-profile role is "User management"
-     // Suppose we add another repo that mentions "user management" in its role or dependencies
-     const profilesWithMatchingRole: RepoProfile[] = [
-       ...profiles,
-       {
-         name: 'admin-panel',
-         path: '/path/to/admin-panel',
-         role: 'Admin UI for User management', // Mentions 'User management'
-         framework: 'Vue',
-         language: 'TypeScript',
-         key_directories: ['src'],
-         exports_summary: '',
-         dependencies: ['vue'],
-         tech_fingerprint: {
-           api_style: 'REST',
-           orm: null,
-           test_framework: 'Vitest',
-           ci: 'GitHub Actions'
-         },
-         registered_at: '2026-04-07T00:00:00Z',
-         learned_at: '2026-04-07T00:00:00Z'
-       }
-     ];
-     
-     const contracts = discoverContracts(profilesWithMatchingRole);
-     const adminToUser = contracts.find(c => c.provider === 'user-profile' && c.consumer === 'admin-panel');
-     
-     expect(adminToUser).toBeDefined();
-     expect(adminToUser?.confidence).toBeGreaterThan(0);
-     expect(adminToUser?.confidence).toBeLessThan(1.0);
+  it('detects role-based matches with 0.7 confidence', () => {
+    // web-app role is "frontend calling api-service"
+    const contracts = discoverContracts(mockProfiles);
+    const roleMatch = contracts.find(c => c.provider === 'api-service' && c.consumer === 'web-app' && c.type === 'npm dependency');
+    // In our logic, if explicit is found, role match is skipped. 
+    // Let's modify a mock to test role match alone.
+    
+    const roleOnlyProfiles = [
+      mockProfiles[0],
+      { ...mockProfiles[1], dependencies: [] }
+    ];
+    
+    const contracts2 = discoverContracts(roleOnlyProfiles);
+    const match = contracts2.find(c => c.provider === 'api-service' && c.consumer === 'web-app');
+    expect(match).toBeDefined();
+    expect(match?.confidence).toBe(0.7);
+    expect(match?.type).toBe('role match');
+  });
+
+  it('detects export-based matches with 0.6 confidence', () => {
+    const exportProfiles = [
+      mockProfiles[2], // shared-ui
+      { ...mockProfiles[1], dependencies: [], exports_summary: 'uses shared-ui components' }
+    ];
+    
+    const contracts = discoverContracts(exportProfiles);
+    const match = contracts.find(c => c.provider === 'shared-ui' && c.consumer === 'web-app');
+    expect(match).toBeDefined();
+    expect(match?.confidence).toBe(0.6);
+    expect(match?.type).toBe('export match');
   });
 });

@@ -52,6 +52,7 @@ export const ProjectStateSchema = z.object({
   lifecycle: LifecycleSchema.default('idle'),
   repos_registered: z.number().default(0),
   contracts_discovered: z.number().default(0),
+  contracts: z.array(ContractSchema).default([]),
   current_plan: z.string().nullable().default(null),
   tasks: TaskProgressSchema.default({}),
   last_session: z.string().nullable().default(null),

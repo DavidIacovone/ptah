@@ -35,6 +35,13 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'discover':
+    case 'ptah:discover': {
+      const { runDiscover } = await import('./commands/discover.js');
+      await runDiscover(args.slice(1));
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
@@ -68,6 +75,8 @@ COMMANDS
   init              Initialize a new Ptah project
   list              List all configured projects
   register          Register a repository with a project
+  learn             Scan registered repositories
+  discover          Discover cross-repo contracts
   help              Show this help message
 
 OPTIONS
