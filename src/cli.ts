@@ -28,6 +28,13 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'learn':
+    case 'ptah:learn': {
+      const { runLearn } = await import('./commands/learn.js');
+      await runLearn(args.slice(1));
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':

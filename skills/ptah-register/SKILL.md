@@ -1,55 +1,49 @@
 ---
 name: ptah:register
-description: Register a repository with the current Ptah project. Use when the user wants to add a repo to their ecosystem, says "register repo", or "add repo".
+description: Register a repository with the current project. Use when the user wants to add, register, or connect a repository to their multi-repo orchestration project.
 ---
 
 <objective>
-Register a repository with the active Ptah project. Creates a stub profile with auto-detected role, framework, and language. Full scanning is deferred to `ptah:learn`.
+Register a new repository with the current Ptah project.
 
-**Prerequisites:** A Ptah project must exist (`ptah init <name>` first).
+This skill allows the user to add a repository to their ecosystem map by specifying its path and optionally its role (e.g., frontend, backend).
 </objective>
 
 <process>
 
-## Step 1: Determine target and project
+## Step 1: Collect Repository Information
 
-The user may provide:
-- A path to register (defaults to current directory if omitted)
-- A role override via `--role <role>` (otherwise auto-detected)
-- A project name via `--project <name>` (otherwise inferred if only one project exists)
+Ask the user for:
+1. **Repository path** (required) — absolute or relative path to the repo directory
+2. **Role** (optional) — `frontend`, `backend`, `shared-lib`, `infra`, etc. (if omitted, Ptah will try to auto-detect)
+3. **Project name** (optional) — the Ptah project to register this repo in (defaults to the active project if only one exists)
 
-## Step 2: Run the registration command
+## Step 2: Run Register Command
+
+Execute the CLI command with collected parameters:
 
 ```bash
-npx tsx $(npm root -g)/ptah-cli/src/commands/register.ts <path> [--role <role>] [--project <name>]
+ptah register <path> [--role <role>] [--project <project>]
 ```
 
-Or run via the CLI:
+If `ptah` is not installed globally, use:
 ```bash
-ptah register <path> [--role <role>] [--project <name>]
+npx ptah register <path> [--role <role>] [--project <project>]
 ```
 
-**If path is omitted**, the current working directory is used.
+## Step 3: Confirm Success
 
-## Step 3: Verify registration
+After successful registration, report:
+- Repository name and path
+- Detected/assigned role
+- Framework and language (if detected)
+- Updated ECOSYSTEM.md location
 
-Check that:
-1. A profile JSON file was created at `~/.ptah/projects/<project>/repos/<repo-name>.json`
-2. The auto-detected role makes sense — if not, re-run with `--role <correct-role>`
+## Step 4: If Error
 
-## Step 4: Update ECOSYSTEM.md
-
-After registration, update the project's ECOSYSTEM.md to include the new repository in the table:
-
-```markdown
-| <repo-name> | <role> | <path> | <framework> | <language> |
-```
-
-## Step 5: Report and suggest next steps
-
-Tell the user:
-- What was registered and with what role
-- Suggest `ptah:learn` for deep analysis
-- Suggest `ptah:register` again for additional repos
+If the command fails:
+- Check if the path exists and is a directory
+- Verify the repository isn't already registered
+- Ensure a valid project name is provided if multiple projects exist
 
 </process>

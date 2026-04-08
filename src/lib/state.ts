@@ -210,6 +210,19 @@ export function listRepoProfiles(
   return profiles;
 }
 
+export function findProject(ptahHome?: string): string | null {
+  const projectsDir = getProjectsDir(ptahHome);
+  if (!existsSync(projectsDir)) return null;
+
+  const entries = readdirSync(projectsDir).filter((entry: string) => {
+    const entryPath = join(projectsDir, entry);
+    return statSync(entryPath).isDirectory() && existsSync(join(entryPath, 'config.json'));
+  });
+
+  if (entries.length === 1) return entries[0];
+  return null;
+}
+
 export function deleteRepoProfile(
   projectName: string,
   repoName: string,

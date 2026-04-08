@@ -8,7 +8,7 @@
 
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, resolve, join } from 'node:path';
-import { writeRepoProfile, readRepoProfile, listRepoProfiles, updateProjectState } from '../lib/state.js';
+import { writeRepoProfile, readRepoProfile, listRepoProfiles, updateProjectState, findProject } from '../lib/state.js';
 import { getProjectsDir, getProjectDir } from '../lib/paths.js';
 import type { RepoProfile } from '../lib/schemas.js';
 
@@ -151,19 +151,6 @@ function detectFramework(repoPath: string): string | null {
     }
   }
 
-  return null;
-}
-
-function findProject(ptahHome?: string): string | null {
-  const projectsDir = getProjectsDir(ptahHome);
-  if (!existsSync(projectsDir)) return null;
-
-  const entries = readdirSync(projectsDir).filter((entry: string) => {
-    const entryPath = join(projectsDir, entry);
-    return statSync(entryPath).isDirectory() && existsSync(join(entryPath, 'config.json'));
-  });
-
-  if (entries.length === 1) return entries[0];
   return null;
 }
 
