@@ -84,17 +84,11 @@ export type RepoProfile = z.infer<typeof RepoProfileSchema>;
 
 // ── Contract Schema ────────────────────────────────────────────
 
-export const ContractConfidence = z.enum(['high', 'medium', 'low']);
-export type ContractConfidence = z.infer<typeof ContractConfidence>;
-
-export const ContractType = z.enum(['api', 'shared-type', 'implicit']);
-export type ContractType = z.infer<typeof ContractType>;
-
 export const ContractSchema = z.object({
   provider: z.string(),
   consumer: z.string(),
-  type: ContractType,
-  confidence: ContractConfidence,
+  type: z.string(),
+  confidence: z.number().min(0).max(1),
   evidence: z.string(),
   confirmed: z.boolean().default(false),
   discovered_at: z.string().default(''),
