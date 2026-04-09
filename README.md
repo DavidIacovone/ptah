@@ -1,5 +1,7 @@
 # Ptah
 
+**This version is still a work in progress. It might not work as expected**
+
 **Meta-orchestration framework for cross-repository AI coding coordination.**
 
 Ptah extends AI coding tools (Gemini CLI, Claude Code) with skills for managing changes across multiple interconnected repositories. It understands your ecosystem's dependency graph, generates wave-based execution plans, and coordinates the AI tool through cross-repo tasks.
