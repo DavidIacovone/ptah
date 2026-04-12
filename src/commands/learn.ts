@@ -1,8 +1,10 @@
 /**
- * ptah learn — Deeply analyze registered repositories
+ * @module commands/learn
+ *
+ * CLI handler for `ptah learn` — Deeply analyze registered repositories.
  *
  * Scans each registered repo for framework, language, key directories,
- * and public exports. Updates the RepoProfile files.
+ * and public exports, then updates the repo profile JSON files.
  */
 
 import { listRepoProfiles, writeRepoProfile, updateProjectState, findProject } from '../lib/state.js';
@@ -12,6 +14,12 @@ interface LearnOptions {
   project: string | null;
 }
 
+/**
+ * Parse CLI arguments into structured learn options.
+ *
+ * @param args - Raw CLI arguments after `ptah learn`.
+ * @returns Parsed options including optional project name.
+ */
 function parseLearnArgs(args: string[]): LearnOptions {
   let project: string | null = null;
 
@@ -25,6 +33,14 @@ function parseLearnArgs(args: string[]): LearnOptions {
   return { project };
 }
 
+/**
+ * Entry point for the `ptah learn` CLI command.
+ *
+ * Iterates over all registered repos, runs the scanner on each,
+ * extracts public exports, and persists updated repo profiles.
+ *
+ * @param args - CLI arguments after the `learn` subcommand.
+ */
 export async function runLearn(args: string[]): Promise<void> {
   const { project: explicitProject } = parseLearnArgs(args);
 

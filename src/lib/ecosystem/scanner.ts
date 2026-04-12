@@ -1,14 +1,38 @@
+/**
+ * @module scanner
+ *
+ * Repository structure scanner.
+ *
+ * Detects frameworks, primary languages, and key directories by analyzing
+ * manifest files, file extensions, and directory structure. Used by the
+ * `ptah learn` command to enrich repo profiles.
+ */
+
 import fg from 'fast-glob';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, extname, basename } from 'node:path';
 import { FRAMEWORKS, LANGUAGES, KEY_DIRECTORIES } from './detectors.js';
 
+/** Results returned by {@link scanRepo}. */
 export interface ScanResult {
   framework: string | null;
   language: string | null;
   key_directories: string[];
 }
 
+/**
+ * Deeply scan a repository to detect its framework, primary language,
+ * and architecturally significant directories.
+ *
+ * Performs two passes:
+ * 1. **Root-level manifest scan** — checks for `package.json`, `go.mod`,
+ *    `Cargo.toml`, etc. and matches against known framework patterns.
+ * 2. **Full tree scan** — counts file extensions to determine the dominant
+ *    language, and identifies key directories like `src/`, `tests/`, etc.
+ *
+ * @param repoPath - Absolute path to the repository root.
+ * @returns Detected framework, language, and key directories.
+ */
 export async function scanRepo(repoPath: string): Promise<ScanResult> {
   // Find all files in the root to detect manifests
   const rootFiles = await fg(['*'], {
@@ -102,8 +126,13 @@ export async function scanRepo(repoPath: string): Promise<ScanResult> {
 }
 
 /**
- * Extract public exports or entry points from the repository.
- * For Node.js projects, it looks at 'exports' or 'main' in package.json.
+ * Extract public entry points or exports summary from a repository.
+ *
+ * For Node.js projects, reads `exports` or `main` from `package.json`.
+ * For Go projects, returns `main.go`. For Rust, returns `src/lib.rs or src/main.rs`.
+ *
+ * @param repoPath - Absolute path to the repository root.
+ * @returns Human-readable summary of the repo's public exports, or `"unknown"`.
  */
 export function extractExports(repoPath: string): string {
   const pkgPath = join(repoPath, 'package.json');

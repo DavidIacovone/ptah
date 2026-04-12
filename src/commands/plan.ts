@@ -1,13 +1,18 @@
 /**
- * ptah plan — Create a task plan for cross-repo changes.
+ * @module commands/plan
  *
- * Logic:
- * 1. Find a Ptah project.
- * 2. Accept --description and --tasks (JSON) arguments.
- * 3. Validate tasks reference only registered repositories.
- * 4. Persist the plan to the filesystem using writePlan.
- * 5. Update lifecycle in STATE.json.
- * 6. Display the created plan summary.
+ * CLI handler for `ptah plan` — Create a task plan for cross-repo changes.
+ *
+ * Accepts a change description and a JSON array of tasks, validates that
+ * each task references a registered repository, persists the plan via
+ * {@link PlanSchema}, and updates the project lifecycle to `"planned"`.
+ *
+ * @example
+ * ```bash
+ * ptah plan my-project \
+ *   --description "Add user avatar support" \
+ *   --tasks '[{"id":"t1","repo":"shared-types","description":"Add avatar field"}]'
+ * ```
  */
 
 import {
@@ -21,6 +26,15 @@ import { getPtahHome } from '../lib/paths.js';
 import { PlanSchema, type Task } from '../lib/schemas.js';
 import { randomUUID } from 'node:crypto';
 
+/**
+ * Entry point for the `ptah plan` CLI command.
+ *
+ * Parses `--description` and `--tasks` arguments, validates task repo
+ * references against registered repositories, creates a timestamped plan,
+ * and updates the project state.
+ *
+ * @param args - CLI arguments after the `plan` subcommand.
+ */
 export async function runPlan(args: string[]): Promise<void> {
   const ptahHome = getPtahHome();
 

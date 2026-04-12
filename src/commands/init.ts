@@ -1,11 +1,11 @@
 /**
- * ptah init — Create a new Ptah project
+ * @module commands/init
  *
- * Creates a project directory under ~/.ptah/projects/<name>/ with:
- * - config.json (CLI tool, token limits, permission mode)
- * - STATE.json (lifecycle state tracking)
- * - ECOSYSTEM.md (registered repos and relationships)
- * - repos/, plans/, logs/ subdirectories
+ * CLI handler for `ptah init` — Create a new Ptah project.
+ *
+ * Creates a project directory under `~/.ptah/projects/<name>/` with
+ * configuration, state tracking, ecosystem documentation, and empty
+ * subdirectories for repos, plans, and logs.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
@@ -17,6 +17,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const TEMPLATES_DIR = join(__dirname, '..', '..', 'templates');
 
+/**
+ * Read the Ptah CLI version from package.json.
+ *
+ * @returns Semver version string (defaults to `"0.1.0"` if unreadable).
+ */
 function getVersion(): string {
   try {
     const pkgPath = join(__dirname, '..', 'package.json');
@@ -27,6 +32,7 @@ function getVersion(): string {
   }
 }
 
+/** Parsed arguments for the `ptah init` command. */
 interface InitOptions {
   name: string | null;
   location: string | null;
@@ -35,6 +41,12 @@ interface InitOptions {
   mode: string;
 }
 
+/**
+ * Parse CLI arguments into structured init options.
+ *
+ * @param args - Raw CLI arguments after `ptah init`.
+ * @returns Parsed options with defaults applied.
+ */
 function parseInitArgs(args: string[]): InitOptions {
   let name: string | null = null;
   let location: string | null = null;
@@ -60,6 +72,14 @@ function parseInitArgs(args: string[]): InitOptions {
   return { name, location, cliTool, maxTokens, mode };
 }
 
+/**
+ * Entry point for the `ptah init` CLI command.
+ *
+ * Validates the project name, creates the directory structure under
+ * `~/.ptah/projects/<name>/`, copies templates, and displays next steps.
+ *
+ * @param args - CLI arguments after the `init` subcommand.
+ */
 export async function runInit(args: string[]): Promise<void> {
   const { name, location, cliTool, maxTokens, mode } = parseInitArgs(args);
 

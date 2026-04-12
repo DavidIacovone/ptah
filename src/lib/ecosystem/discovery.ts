@@ -1,15 +1,37 @@
+/**
+ * @module discovery
+ *
+ * Cross-repository contract discovery engine.
+ *
+ * Analyzes registered repo profiles to infer dependency relationships
+ * (contracts) between repositories. Contracts are later used by the DAG
+ * builder to determine task execution order.
+ */
+
 import { RepoProfile, Contract } from '../schemas.js';
 
 /**
- * Discovers potential contracts between registered repositories.
- * 
- * Logic:
- * 1. Explicit dependencies: If Repo B lists Repo A in its dependencies (e.g. package.json),
- *    this is a high-confidence contract (1.0).
- * 2. Role matching: If Repo B's role mentions Repo A's name, 
- *    this is a medium-confidence contract (0.7).
- * 3. Export matching: If Repo B's exports_summary mentions Repo A's name,
- *    this is a medium-confidence contract (0.6).
+ * Discover potential dependency contracts between registered repositories.
+ *
+ * Uses three strategies in decreasing confidence order:
+ *
+ * 1. **Explicit dependencies** (confidence: 1.0, auto-confirmed) —
+ *    If a repo lists another registered repo in its `dependencies` array
+ *    (e.g. npm `package.json`), a confirmed contract is created.
+ *
+ * 2. **Role matching** (confidence: 0.7, unconfirmed) —
+ *    If a consumer's `role` field mentions a provider's name or role,
+ *    a heuristic contract is created.
+ *
+ * 3. **Export matching** (confidence: 0.6, unconfirmed) —
+ *    If a consumer's `exports_summary` mentions a provider's name,
+ *    a heuristic contract is created.
+ *
+ * Duplicate contracts (same provider + consumer pair) are avoided;
+ * the highest-confidence match wins.
+ *
+ * @param profiles - All registered repo profiles for the project.
+ * @returns Array of discovered contracts (may be empty).
  */
 export function discoverContracts(profiles: RepoProfile[]): Contract[] {
   const contracts: Contract[] = [];

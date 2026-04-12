@@ -1,14 +1,24 @@
 /**
- * ptah list — List all configured Ptah projects
+ * @module commands/list
  *
- * Reads ~/.ptah/projects/ and displays each project's name,
- * CLI tool, permission mode, and lifecycle status.
+ * CLI handler for `ptah list` — List all configured Ptah projects.
+ *
+ * Reads `~/.ptah/projects/` and displays each project's name,
+ * CLI tool preference, permission mode, and lifecycle status.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { getPtahHome, getProjectsDir } from '../lib/paths.js';
 
+/**
+ * Entry point for the `ptah list` CLI command.
+ *
+ * Scans the projects directory and displays a formatted table with
+ * each project's name, CLI tool, mode, and lifecycle status.
+ *
+ * @param _args - CLI arguments (currently unused).
+ */
 export async function runList(_args: string[]): Promise<void> {
   const ptahHome = getPtahHome();
   const projectsDir = getProjectsDir(ptahHome);

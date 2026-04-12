@@ -1,8 +1,16 @@
 /**
+ * @module state
+ *
  * Type-safe state management utilities for Ptah projects.
  *
- * All read operations validate against zod schemas.
- * All write operations validate before persisting.
+ * This module provides validated read/write access to all JSON data files
+ * that Ptah persists to disk: project configs, project state, global config,
+ * repo profiles, and task plans.
+ *
+ * **All reads validate against Zod schemas** — malformed or missing fields
+ * are caught immediately with descriptive error messages.
+ *
+ * **All writes validate before persisting** — invalid data never reaches disk.
  */
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
@@ -24,6 +32,13 @@ import { getProjectDir, getProjectsDir, getGlobalConfigPath, getPtahHome } from 
 
 // ── Error formatting ───────────────────────────────────────────
 
+/**
+ * Format a Zod validation error into a human-readable string.
+ *
+ * @param error - The Zod validation error.
+ * @param filePath - Absolute path to the file that failed validation.
+ * @returns Multi-line error message listing each invalid field.
+ */
 function formatZodError(error: ZodError, filePath: string): string {
   const issues = error.issues.map((issue) => {
     const path = issue.path.join('.');
@@ -34,6 +49,14 @@ function formatZodError(error: ZodError, filePath: string): string {
 
 // ── Project Config ─────────────────────────────────────────────
 
+/**
+ * Read and validate a project's `config.json`.
+ *
+ * @param projectName - Name of the project.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Validated project configuration.
+ * @throws If the file is missing or fails schema validation.
+ */
 export function readProjectConfig(projectName: string, ptahHome?: string): ProjectConfig {
   const projectDir = getProjectDir(projectName, ptahHome);
   const filePath = join(projectDir, 'config.json');
@@ -52,6 +75,14 @@ export function readProjectConfig(projectName: string, ptahHome?: string): Proje
   return result.data;
 }
 
+/**
+ * Validate and write a project's `config.json`.
+ *
+ * @param projectName - Name of the project.
+ * @param config - Configuration object to persist.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @throws If the config fails schema validation.
+ */
 export function writeProjectConfig(
   projectName: string,
   config: ProjectConfig,
@@ -70,6 +101,14 @@ export function writeProjectConfig(
 
 // ── Project State ──────────────────────────────────────────────
 
+/**
+ * Read and validate a project's `STATE.json`.
+ *
+ * @param projectName - Name of the project.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Validated project state.
+ * @throws If the file is missing or fails schema validation.
+ */
 export function readProjectState(projectName: string, ptahHome?: string): ProjectState {
   const projectDir = getProjectDir(projectName, ptahHome);
   const filePath = join(projectDir, 'STATE.json');
@@ -88,6 +127,14 @@ export function readProjectState(projectName: string, ptahHome?: string): Projec
   return result.data;
 }
 
+/**
+ * Validate and write a project's `STATE.json`.
+ *
+ * @param projectName - Name of the project.
+ * @param state - State object to persist.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @throws If the state fails schema validation.
+ */
 export function writeProjectState(
   projectName: string,
   state: ProjectState,
@@ -104,6 +151,17 @@ export function writeProjectState(
   writeFileSync(filePath, JSON.stringify(result.data, null, 2));
 }
 
+/**
+ * Apply a partial update to a project's state.
+ *
+ * Reads the current state, merges the provided fields, stamps
+ * `last_session` with the current time, and writes back.
+ *
+ * @param projectName - Name of the project.
+ * @param updates - Fields to merge into the current state.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns The full updated state after merging.
+ */
 export function updateProjectState(
   projectName: string,
   updates: Partial<ProjectState>,
@@ -117,6 +175,13 @@ export function updateProjectState(
 
 // ── Global Config ──────────────────────────────────────────────
 
+/**
+ * Read and validate the global `config.json` at `~/.ptah/config.json`.
+ *
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Validated global configuration.
+ * @throws If the file is missing or fails schema validation.
+ */
 export function readGlobalConfig(ptahHome?: string): GlobalConfig {
   const filePath = getGlobalConfigPath(ptahHome ?? getPtahHome());
 
@@ -136,14 +201,39 @@ export function readGlobalConfig(ptahHome?: string): GlobalConfig {
 
 // ── Repo Profiles ──────────────────────────────────────────────
 
+/**
+ * Get the directory that holds repo profile JSON files for a project.
+ *
+ * @param projectName - Name of the project.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Absolute path to `<project>/repos/`.
+ */
 function getReposDir(projectName: string, ptahHome?: string): string {
   return join(getProjectDir(projectName, ptahHome), 'repos');
 }
 
+/**
+ * Get the file path for a specific repo profile.
+ *
+ * @param projectName - Name of the project.
+ * @param repoName - Name of the repository.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Absolute path to `<project>/repos/<repoName>.json`.
+ */
 function getRepoProfilePath(projectName: string, repoName: string, ptahHome?: string): string {
   return join(getReposDir(projectName, ptahHome), `${repoName}.json`);
 }
 
+/**
+ * Validate and write a repository profile to disk.
+ *
+ * Creates the `repos/` directory if it doesn't exist.
+ *
+ * @param projectName - Name of the project.
+ * @param profile - Repository profile to persist.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @throws If the profile fails schema validation.
+ */
 export function writeRepoProfile(
   projectName: string,
   profile: RepoProfile,
@@ -162,6 +252,15 @@ export function writeRepoProfile(
   writeFileSync(filePath, JSON.stringify(result.data, null, 2));
 }
 
+/**
+ * Read and validate a single repository profile.
+ *
+ * @param projectName - Name of the project.
+ * @param repoName - Name of the repository.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Validated repository profile.
+ * @throws If the file is missing or fails schema validation.
+ */
 export function readRepoProfile(
   projectName: string,
   repoName: string,
@@ -183,6 +282,16 @@ export function readRepoProfile(
   return result.data;
 }
 
+/**
+ * List all valid repository profiles for a project.
+ *
+ * Reads every `.json` file in the `repos/` directory, validates each against
+ * `RepoProfileSchema`, and silently skips any that fail validation.
+ *
+ * @param projectName - Name of the project.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Array of validated repository profiles (may be empty).
+ */
 export function listRepoProfiles(
   projectName: string,
   ptahHome?: string
@@ -212,6 +321,15 @@ export function listRepoProfiles(
   return profiles;
 }
 
+/**
+ * Auto-detect the active project when only one project exists.
+ *
+ * Scans `~/.ptah/projects/` for directories that contain a `config.json`.
+ * Returns the project name if exactly one is found, `null` otherwise.
+ *
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns The single project name, or `null` if zero or multiple projects exist.
+ */
 export function findProject(ptahHome?: string): string | null {
   const projectsDir = getProjectsDir(ptahHome);
   if (!existsSync(projectsDir)) return null;
@@ -225,6 +343,14 @@ export function findProject(ptahHome?: string): string | null {
   return null;
 }
 
+/**
+ * Delete a repository profile from disk.
+ *
+ * @param projectName - Name of the project.
+ * @param repoName - Name of the repository to remove.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns `true` if the file was deleted, `false` if it didn't exist.
+ */
 export function deleteRepoProfile(
   projectName: string,
   repoName: string,
@@ -242,10 +368,27 @@ export function deleteRepoProfile(
 
 // ── Plans ───────────────────────────────────────────────────────
 
+/**
+ * Get the directory that holds plan JSON files for a project.
+ *
+ * @param projectName - Name of the project.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Absolute path to `<project>/plans/`.
+ */
 function getPlansDir(projectName: string, ptahHome?: string): string {
   return join(getProjectDir(projectName, ptahHome), 'plans');
 }
 
+/**
+ * Validate and write a task plan to disk.
+ *
+ * Creates the `plans/` directory if it doesn't exist.
+ *
+ * @param projectName - Name of the project.
+ * @param plan - Plan object to persist.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @throws If the plan fails schema validation.
+ */
 export function writePlan(
   projectName: string,
   plan: Plan,
@@ -264,6 +407,15 @@ export function writePlan(
   writeFileSync(filePath, JSON.stringify(result.data, null, 2));
 }
 
+/**
+ * Read and validate a task plan from disk.
+ *
+ * @param projectName - Name of the project.
+ * @param planId - Unique identifier of the plan.
+ * @param ptahHome - Optional Ptah home directory override.
+ * @returns Validated plan object.
+ * @throws If the file is missing or fails schema validation.
+ */
 export function readPlan(
   projectName: string,
   planId: string,

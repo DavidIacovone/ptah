@@ -1,9 +1,11 @@
 /**
- * ptah register — Register a repository with the current project
+ * @module commands/register
  *
- * Validates the target path is a directory (and ideally a git repo),
- * auto-detects a role heuristic, creates a stub RepoProfile, and
- * increments repos_registered in project state.
+ * CLI handler for `ptah register` — Register a repository with a Ptah project.
+ *
+ * Validates the target path, auto-detects role / framework / language,
+ * creates a stub repo profile, updates the project state, and appends
+ * the repository to the ecosystem document.
  */
 
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
@@ -12,12 +14,19 @@ import { writeRepoProfile, readRepoProfile, listRepoProfiles, updateProjectState
 import { getProjectsDir, getProjectDir } from '../lib/paths.js';
 import type { RepoProfile } from '../lib/schemas.js';
 
+/** Parsed arguments for the `ptah register` command. */
 interface RegisterOptions {
   path: string;
   role: string | null;
   project: string | null;
 }
 
+/**
+ * Parse CLI arguments into structured register options.
+ *
+ * @param args - Raw CLI arguments after `ptah register`.
+ * @returns Parsed path, role, and project options.
+ */
 function parseRegisterArgs(args: string[]): RegisterOptions {
   let targetPath = '.';
   let role: string | null = null;
@@ -38,8 +47,13 @@ function parseRegisterArgs(args: string[]): RegisterOptions {
 }
 
 /**
- * Auto-detect a repo role based on common heuristics.
- * Falls back to 'unknown' if nothing is detected.
+ * Auto-detect a repository's architectural role based on common heuristics.
+ *
+ * Checks for framework-specific dependencies in `package.json`, manifest
+ * files for Python / Go / Rust / infrastructure, and falls back to `"unknown"`.
+ *
+ * @param repoPath - Absolute path to the repository root.
+ * @returns Detected role string (e.g. `"frontend"`, `"backend"`, `"infra"`).
  */
 function detectRole(repoPath: string): string {
   const pkgPath = join(repoPath, 'package.json');
@@ -97,7 +111,10 @@ function detectRole(repoPath: string): string {
 }
 
 /**
- * Detect primary language from manifest files.
+ * Detect the primary programming language from manifest files.
+ *
+ * @param repoPath - Absolute path to the repository root.
+ * @returns Detected language name, or `null` if unknown.
  */
 function detectLanguage(repoPath: string): string | null {
   if (existsSync(join(repoPath, 'tsconfig.json'))) return 'TypeScript';
@@ -110,7 +127,10 @@ function detectLanguage(repoPath: string): string | null {
 }
 
 /**
- * Detect framework from manifest files.
+ * Detect the primary framework from manifest files and dependency names.
+ *
+ * @param repoPath - Absolute path to the repository root.
+ * @returns Detected framework name (e.g. `"Next.js"`, `"Express"`), or `null`.
  */
 function detectFramework(repoPath: string): string | null {
   const pkgPath = join(repoPath, 'package.json');
@@ -154,6 +174,14 @@ function detectFramework(repoPath: string): string | null {
   return null;
 }
 
+/**
+ * Entry point for the `ptah register` CLI command.
+ *
+ * Validates the target directory, detects role / framework / language,
+ * creates a repo profile, updates project state, and appends to ECOSYSTEM.md.
+ *
+ * @param args - CLI arguments after the `register` subcommand.
+ */
 export async function runRegister(args: string[]): Promise<void> {
   const { path: targetPath, role: explicitRole, project: explicitProject } = parseRegisterArgs(args);
 
@@ -250,14 +278,25 @@ Next: Run ptah:learn to perform deep analysis of this repository.
 `);
 }
 
+/**
+ * Count the total number of registered repos for a project.
+ *
+ * @param projectName - Name of the project.
+ * @returns Number of valid repo profiles.
+ */
 async function getRepoCount(projectName: string): Promise<number> {
   const { listRepoProfiles } = await import('../lib/state.js');
   return listRepoProfiles(projectName).length;
 }
 
 /**
- * Update ECOSYSTEM.md with a new repo entry.
- * Appends a row to the "Registered Repositories" table.
+ * Append a newly registered repository to the project's ECOSYSTEM.md.
+ *
+ * Adds a row to the "Registered Repositories" table and removes the
+ * "No repositories registered" placeholder if present.
+ *
+ * @param projectName - Name of the project.
+ * @param profile - Repository profile to add to the table.
  */
 function updateEcosystem(projectName: string, profile: RepoProfile): void {
   const projectDir = getProjectDir(projectName);

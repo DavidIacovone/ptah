@@ -1,14 +1,16 @@
 /**
- * ptah build-dag — Assign dependency-aware waves to plan tasks.
+ * @module commands/build-dag
  *
- * Logic:
- * 1. Find a Ptah project.
- * 2. Read the specified plan (or current plan from state).
- * 3. Load confirmed contracts for implicit dependency enrichment.
- * 4. Run DAG builder (Kahn's algorithm) to assign waves.
- * 5. Update the plan with wave assignments and total wave count.
- * 6. Update STATE.json lifecycle to 'planned'.
- * 7. Display wave assignment summary.
+ * CLI handler for `ptah build-dag` — Assign dependency-aware waves to plan tasks.
+ *
+ * Reads the specified plan (or the current plan from project state), loads
+ * any confirmed cross-repo contracts, runs Kahn's topological sort to
+ * assign wave numbers, and persists the updated plan.
+ *
+ * @example
+ * ```bash
+ * ptah build-dag my-project --plan plan-1712345678
+ * ```
  */
 
 import {
@@ -21,6 +23,14 @@ import {
 import { getPtahHome } from '../lib/paths.js';
 import { assignWaves } from '../lib/ecosystem/dag.js';
 
+/**
+ * Entry point for the `ptah build-dag` CLI command.
+ *
+ * Reads a plan's tasks, runs the DAG builder to assign parallel execution
+ * waves, updates the plan with wave numbers, and displays a grouped summary.
+ *
+ * @param args - CLI arguments after the `build-dag` subcommand.
+ */
 export async function runBuildDag(args: string[]): Promise<void> {
   const ptahHome = getPtahHome();
 

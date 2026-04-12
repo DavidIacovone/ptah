@@ -1,12 +1,11 @@
 /**
- * ptah discover — Detect cross-repository contracts.
- * 
- * Logic:
- * 1. Find a Ptah project.
- * 2. Load all registered repository profiles.
- * 3. Run discoverContracts logic.
- * 4. Update ProjectState with discovered contracts.
- * 5. Display summary.
+ * @module commands/discover
+ *
+ * CLI handler for `ptah discover` — Detect cross-repository contracts.
+ *
+ * Loads all registered repo profiles, runs the contract discovery engine,
+ * updates project state with discovered contracts, and optionally generates
+ * a `CONTRACTS.md` summary file.
  */
 
 import { 
@@ -25,6 +24,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const TEMPLATES_DIR = join(__dirname, '..', '..', 'templates');
 
+/**
+ * Entry point for the `ptah discover` CLI command.
+ *
+ * Loads repo profiles, runs contract discovery, persists results to
+ * project state, and optionally generates a CONTRACTS.md file with
+ * the `--generate` flag.
+ *
+ * @param args - CLI arguments after the `discover` subcommand.
+ */
 export async function runDiscover(args: string[]): Promise<void> {
   const ptahHome = getPtahHome();
   const shouldGenerate = args.includes('--generate');
@@ -88,6 +96,16 @@ export async function runDiscover(args: string[]): Promise<void> {
   }
 }
 
+/**
+ * Generate or update the `CONTRACTS.md` file for a project.
+ *
+ * Uses the template from `templates/CONTRACTS.md`, populates it with
+ * the project name, timestamp, and a formatted table of contracts.
+ *
+ * @param projectName - Name of the project.
+ * @param contracts - Array of discovered contracts to render.
+ * @param ptahHome - Optional Ptah home directory override.
+ */
 function updateContractsFile(projectName: string, contracts: any[], ptahHome?: string): void {
   const projectDir = getProjectDir(projectName, ptahHome);
   const templatePath = join(TEMPLATES_DIR, 'CONTRACTS.md');

@@ -1,14 +1,28 @@
 /**
+ * @module dag
+ *
  * DAG Builder — Dependency-aware wave assignment for task plans.
  *
  * Builds a Directed Acyclic Graph from a plan's tasks, resolves
- * dependencies using explicit depends_on fields plus cross-repo
+ * dependencies using explicit `depends_on` fields plus cross-repo
  * contract relationships, and assigns wave numbers via topological
  * sort (Kahn's algorithm).
  *
  * Wave N contains tasks whose prerequisites all completed in earlier
  * waves. Tasks with no dependencies land in Wave 1. Independent tasks
  * within the same wave run in parallel.
+ *
+ * @example
+ * ```ts
+ * import { assignWaves } from './dag.js';
+ *
+ * const result = assignWaves(plan.tasks, state.contracts);
+ * if (result.isValid) {
+ *   console.log(`${result.totalWaves} waves assigned`);
+ * } else {
+ *   console.error(result.error); // cycle detected
+ * }
+ * ```
  */
 
 import type { Task, Plan } from '../schemas.js';
@@ -28,12 +42,22 @@ export interface DagResult {
 }
 
 /**
- * Assign waves to plan tasks based on dependency analysis.
+ * Assign execution waves to plan tasks based on dependency analysis.
  *
- * Uses Kahn's algorithm for topological ordering:
- * 1. Build adjacency list and in-degree map from explicit dependencies
- * 2. Optionally enrich with contract-based implicit dependencies
- * 3. Process nodes with in-degree 0 → Wave 1, their dependents → Wave 2, etc.
+ * Uses Kahn's algorithm (BFS-based topological sort) to group tasks
+ * into parallel execution waves:
+ *
+ * 1. Build an adjacency list and in-degree map from explicit `depends_on` fields.
+ * 2. Optionally enrich the graph with edges from confirmed cross-repo contracts
+ *    (provider repo tasks must complete before consumer repo tasks).
+ * 3. Process all nodes with in-degree 0 as Wave 1, reduce in-degrees for their
+ *    dependents, and repeat for Wave 2, 3, etc.
+ * 4. If any tasks remain unprocessed after the BFS, a dependency cycle exists.
+ *
+ * @param tasks - Array of tasks to assign waves to.
+ * @param contracts - Optional array of contracts for implicit dependency enrichment.
+ *                    Only `confirmed` contracts contribute edges to the graph.
+ * @returns A {@link DagResult} with updated tasks, wave map, and validity status.
  */
 export function assignWaves(
   tasks: Task[],
