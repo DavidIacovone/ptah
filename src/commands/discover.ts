@@ -29,9 +29,9 @@ export async function runDiscover(args: string[]): Promise<void> {
   const ptahHome = getPtahHome();
   const shouldGenerate = args.includes('--generate');
   
-  let projectName = args.find(a => !a.startsWith('--'));
+  let projectName: string | undefined = args.find(a => !a.startsWith('--'));
   if (!projectName) {
-    projectName = findProject(ptahHome) || null;
+    projectName = findProject(ptahHome) ?? undefined;
   }
 
   if (!projectName) {
