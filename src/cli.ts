@@ -108,6 +108,12 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'setup': {
+      const { runSetup } = await import('./commands/setup.js');
+      await runSetup(args.slice(1));
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
@@ -153,6 +159,7 @@ COMMANDS
   mark-verified     Finalize verification and complete lifecycle
   verify-local      Run local repo tests (stub for v1)
   reset-state       Reset lifecycle to idle (escape hatch)
+  setup             Install Ptah skills into your AI tool
   help              Show this help message
 
 OPTIONS
