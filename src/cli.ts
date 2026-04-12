@@ -56,6 +56,32 @@ async function main(): Promise<void> {
       break;
     }
 
+    // ── Execution commands ──────────────────────────────────
+
+    case 'next-task': {
+      const { runNextTask } = await import('./commands/execute.js');
+      await runNextTask(args.slice(1));
+      break;
+    }
+
+    case 'complete-task': {
+      const { runCompleteTask } = await import('./commands/execute.js');
+      await runCompleteTask(args.slice(1));
+      break;
+    }
+
+    case 'fail-task': {
+      const { runFailTask } = await import('./commands/execute.js');
+      await runFailTask(args.slice(1));
+      break;
+    }
+
+    case 'status': {
+      const { runStatus } = await import('./commands/status.js');
+      await runStatus(args.slice(1));
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
@@ -93,6 +119,10 @@ COMMANDS
   discover          Discover cross-repo contracts
   plan              Create a task plan for cross-repo changes
   build-dag         Assign dependency-aware waves to plan tasks
+  status            Show project lifecycle and execution progress
+  next-task         Get the next pending task (JSON output)
+  complete-task     Mark a task as completed and collect diff
+  fail-task         Mark a task as failed with error message
   help              Show this help message
 
 OPTIONS
@@ -103,6 +133,8 @@ SKILL COMMANDS (run within AI tools)
   ptah:init         Interactive project setup guide
   ptah:help         Show skill command reference
   ptah:status       Show workspace status
+  ptah:execute      Execute an approved plan via native subagents
+  ptah:verify       Verify completed work against acceptance criteria
   ptah:register     Register a repository
   ptah:plan         Generate task plans from natural language
   ptah:build-dag    Auto-assign waves via dependency analysis
