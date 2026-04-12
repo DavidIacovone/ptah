@@ -8,7 +8,7 @@
  * subdirectories for repos, plans, and logs.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, copyFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPtahHome, getProjectDir, getProjectsDir, getGlobalConfigPath } from '../lib/paths.js';
@@ -159,6 +159,19 @@ export async function runInit(args: string[]): Promise<void> {
   ecosystem = ecosystem.replace('{{PROJECT_NAME}}', name);
   ecosystem = ecosystem.replace('{{CREATED_AT}}', new Date().toISOString().split('T')[0]);
   writeFileSync(join(projectDir, 'ECOSYSTEM.md'), ecosystem);
+
+  // Install skill templates for AI tool discovery
+  const skillTemplatesDir = join(TEMPLATES_DIR, 'skills');
+  const projectSkillsDir = join(projectDir, 'skills');
+  if (existsSync(skillTemplatesDir)) {
+    const skillFiles = readdirSync(skillTemplatesDir).filter((f: string) => f.endsWith('.md'));
+    for (const skillFile of skillFiles) {
+      const skillName = skillFile.replace('.md', '');
+      const skillDir = join(projectSkillsDir, skillName);
+      mkdirSync(skillDir, { recursive: true });
+      copyFileSync(join(skillTemplatesDir, skillFile), join(skillDir, 'SKILL.md'));
+    }
+  }
 
   const toolDisplay = cliTool === 'gemini-cli' ? 'Gemini CLI' : 'Claude Code';
   console.log(`
