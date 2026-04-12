@@ -5,7 +5,7 @@
  * All write operations validate before persisting.
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { ZodError } from 'zod';
 import {
@@ -13,12 +13,14 @@ import {
   ProjectStateSchema,
   GlobalConfigSchema,
   RepoProfileSchema,
+  PlanSchema,
   type ProjectConfig,
   type ProjectState,
   type GlobalConfig,
   type RepoProfile,
+  type Plan,
 } from './schemas.js';
-import { getProjectDir, getGlobalConfigPath, getPtahHome } from './paths.js';
+import { getProjectDir, getProjectsDir, getGlobalConfigPath, getPtahHome } from './paths.js';
 
 // ── Error formatting ───────────────────────────────────────────
 
@@ -236,4 +238,49 @@ export function deleteRepoProfile(
 
   unlinkSync(filePath);
   return true;
+}
+
+// ── Plans ───────────────────────────────────────────────────────
+
+function getPlansDir(projectName: string, ptahHome?: string): string {
+  return join(getProjectDir(projectName, ptahHome), 'plans');
+}
+
+export function writePlan(
+  projectName: string,
+  plan: Plan,
+  ptahHome?: string
+): void {
+  const plansDir = getPlansDir(projectName, ptahHome);
+  mkdirSync(plansDir, { recursive: true });
+
+  const filePath = join(plansDir, `${plan.id}.json`);
+
+  const result = PlanSchema.safeParse(plan);
+  if (!result.success) {
+    throw new Error(formatZodError(result.error, filePath));
+  }
+
+  writeFileSync(filePath, JSON.stringify(result.data, null, 2));
+}
+
+export function readPlan(
+  projectName: string,
+  planId: string,
+  ptahHome?: string
+): Plan {
+  const filePath = join(getPlansDir(projectName, ptahHome), `${planId}.json`);
+
+  if (!existsSync(filePath)) {
+    throw new Error(`Plan not found: ${filePath}`);
+  }
+
+  const raw = JSON.parse(readFileSync(filePath, 'utf-8'));
+  const result = PlanSchema.safeParse(raw);
+
+  if (!result.success) {
+    throw new Error(formatZodError(result.error, filePath));
+  }
+
+  return result.data;
 }

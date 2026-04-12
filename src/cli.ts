@@ -42,6 +42,20 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'plan':
+    case 'ptah:plan': {
+      const { runPlan } = await import('./commands/plan.js');
+      await runPlan(args.slice(1));
+      break;
+    }
+
+    case 'build-dag':
+    case 'ptah:build-dag': {
+      const { runBuildDag } = await import('./commands/build-dag.js');
+      await runBuildDag(args.slice(1));
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
@@ -77,6 +91,8 @@ COMMANDS
   register          Register a repository with a project
   learn             Scan registered repositories
   discover          Discover cross-repo contracts
+  plan              Create a task plan for cross-repo changes
+  build-dag         Assign dependency-aware waves to plan tasks
   help              Show this help message
 
 OPTIONS
@@ -88,6 +104,8 @@ SKILL COMMANDS (run within AI tools)
   ptah:help         Show skill command reference
   ptah:status       Show workspace status
   ptah:register     Register a repository
+  ptah:plan         Generate task plans from natural language
+  ptah:build-dag    Auto-assign waves via dependency analysis
   ptah:learn        Scan ecosystem structure
   ptah:discover     Discover cross-repo contracts
 `);

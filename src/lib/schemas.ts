@@ -33,6 +33,21 @@ export const TaskProgressSchema = z.object({
 
 export type TaskProgress = z.infer<typeof TaskProgressSchema>;
 
+// ── Contract Schema ────────────────────────────────────────────
+// (Defined before ProjectStateSchema which references it)
+
+export const ContractSchema = z.object({
+  provider: z.string(),
+  consumer: z.string(),
+  type: z.string(),
+  confidence: z.number().min(0).max(1),
+  evidence: z.string(),
+  confirmed: z.boolean().default(false),
+  discovered_at: z.string().default(''),
+});
+
+export type Contract = z.infer<typeof ContractSchema>;
+
 // ── Project State Schema ───────────────────────────────────────
 
 export const LifecycleSchema = z.enum([
@@ -83,16 +98,31 @@ export const RepoProfileSchema = z.object({
 
 export type RepoProfile = z.infer<typeof RepoProfileSchema>;
 
-// ── Contract Schema ────────────────────────────────────────────
+// ── Task & Plan Schemas ──────────────────────────────────────────
 
-export const ContractSchema = z.object({
-  provider: z.string(),
-  consumer: z.string(),
-  type: z.string(),
-  confidence: z.number().min(0).max(1),
-  evidence: z.string(),
-  confirmed: z.boolean().default(false),
-  discovered_at: z.string().default(''),
+export const TaskStatusSchema = z.enum(['pending', 'running', 'completed', 'failed']);
+export type TaskStatus = z.infer<typeof TaskStatusSchema>;
+
+export const TaskSchema = z.object({
+  id: z.string(),
+  repo: z.string(),
+  description: z.string(),
+  status: TaskStatusSchema.default('pending'),
+  wave: z.number().default(1),
+  depends_on: z.array(z.string()).default([]),
+  diff: z.string().nullable().default(null),
+  error: z.string().nullable().default(null),
 });
 
-export type Contract = z.infer<typeof ContractSchema>;
+export type Task = z.infer<typeof TaskSchema>;
+
+export const PlanSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  created_at: z.string(),
+  status: z.enum(['draft', 'approved', 'executing', 'completed', 'failed']).default('draft'),
+  tasks: z.array(TaskSchema).default([]),
+  waves: z.number().default(0),
+});
+
+export type Plan = z.infer<typeof PlanSchema>;
