@@ -15,7 +15,7 @@ import { getPtahHome, getProjectDir, getProjectsDir, getGlobalConfigPath } from 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const TEMPLATES_DIR = join(__dirname, '..', '..', 'templates');
+const TEMPLATES_DIR = join(__dirname, '..', 'templates');
 
 /**
  * Read the Ptah CLI version from package.json.

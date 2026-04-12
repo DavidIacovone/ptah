@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const TEMPLATES_DIR = join(__dirname, '..', '..', 'templates');
+const TEMPLATES_DIR = join(__dirname, '..', 'templates');
 
 /**
  * Entry point for the `ptah discover` CLI command.
