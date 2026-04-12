@@ -82,6 +82,32 @@ async function main(): Promise<void> {
       break;
     }
 
+    // ── Verification & Lifecycle commands ────────────────────
+
+    case 'verify-manifest': {
+      const { runVerifyManifest } = await import('./commands/verify.js');
+      await runVerifyManifest(args.slice(1));
+      break;
+    }
+
+    case 'mark-verified': {
+      const { runMarkVerified } = await import('./commands/verify.js');
+      await runMarkVerified(args.slice(1));
+      break;
+    }
+
+    case 'verify-local': {
+      const { runVerifyLocal } = await import('./commands/verify.js');
+      await runVerifyLocal(args.slice(1));
+      break;
+    }
+
+    case 'reset-state': {
+      const { runResetState } = await import('./commands/lifecycle.js');
+      await runResetState(args.slice(1));
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
@@ -123,6 +149,10 @@ COMMANDS
   next-task         Get the next pending task (JSON output)
   complete-task     Mark a task as completed and collect diff
   fail-task         Mark a task as failed with error message
+  verify-manifest   Dump JSON manifest of tasks and diffs
+  mark-verified     Finalize verification and complete lifecycle
+  verify-local      Run local repo tests (stub for v1)
+  reset-state       Reset lifecycle to idle (escape hatch)
   help              Show this help message
 
 OPTIONS
