@@ -39,36 +39,30 @@ cat {task.diff_path}
 
 ### 2b. Spawn Reviewer Subagent
 
-Spawn a native subagent to act as a code reviewer:
+**Spawn a subagent** to review this task's changes:
 
-```
-Task(
-  prompt="You are a code reviewer. Analyze the following diff and determine
-if it correctly implements the described task.
-
-## Task Description
-{task.description}
-
-## Repository
-{task.repo}
-
-## Diff
-{diff_contents}
-
-## Review Criteria
-1. Does the diff implement what the task description asks for?
-2. Are there any obvious bugs, missing edge cases, or incomplete implementations?
-3. Does the code follow reasonable quality standards?
-
-## Output Format
-Respond with:
-- **PASS** or **FAIL**
-- Brief explanation (2-3 sentences)
-- If FAIL: what specifically is missing or wrong",
-
-  description="Review task {task.id}: {task.description}"
-)
-```
+> You are a code reviewer. Analyze the following diff and determine
+> if it correctly implements the described task.
+>
+> ## Task Description
+> {task.description}
+>
+> ## Repository
+> {task.repo}
+>
+> ## Diff
+> {diff_contents}
+>
+> ## Review Criteria
+> 1. Does the diff implement what the task description asks for?
+> 2. Are there any obvious bugs, missing edge cases, or incomplete implementations?
+> 3. Does the code follow reasonable quality standards?
+>
+> ## Output Format
+> Respond with:
+> - **PASS** or **FAIL**
+> - Brief explanation (2-3 sentences)
+> - If FAIL: what specifically is missing or wrong
 
 ### 2c. Record Review Result
 

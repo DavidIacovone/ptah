@@ -173,7 +173,23 @@ export async function runInit(args: string[]): Promise<void> {
     }
   }
 
-  const toolDisplay = cliTool === 'gemini-cli' ? 'Gemini CLI' : 'Claude Code';
+  // Auto-install skills for the configured AI tool
+  const toolDisplayMap: Record<string, string> = {
+    'gemini-cli': 'Gemini CLI',
+    'claude-code': 'Claude Code',
+  };
+  const toolDisplay = toolDisplayMap[cliTool] || cliTool;
+  let skillsInstalled = false;
+
+  try {
+    const { runSetup } = await import('./setup.js');
+    console.log(`Installing skills for ${toolDisplay}...`);
+    await runSetup(['--tool', cliTool]);
+    skillsInstalled = true;
+  } catch {
+    console.warn(`\nWarning: Could not auto-install skills. Run 'ptah setup --tool ${cliTool}' manually.`);
+  }
+
   console.log(`
 ✓ Project "${name}" created at ${projectDir}
 
@@ -183,7 +199,7 @@ export async function runInit(args: string[]): Promise<void> {
   repos/          — Repository profiles (empty)
   plans/          — Task plans (empty)
   logs/           — Execution logs (empty)
-
+${skillsInstalled ? `  skills          — Installed for ${toolDisplay}\n` : ''}
 Next steps:
   1. Open your AI tool (${toolDisplay})
   2. Run ptah:register <path> --role <role> to add repositories

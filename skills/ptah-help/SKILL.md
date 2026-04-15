@@ -24,6 +24,9 @@ Display the following command reference:
 |---------|-------------|
 | `ptah init <name>` | Create a new Ptah project |
 | `ptah list` | List all Ptah projects |
+| `ptah setup` | Install skills into AI tool |
+| `ptah status` | Show project lifecycle and execution progress |
+| `ptah check-permission <action>` | Check permission level for an action |
 | `ptah help` | Show this help message |
 
 **Options for `ptah init`:**
@@ -32,6 +35,9 @@ Display the following command reference:
 - `--max-tokens <n>` — Max tokens per session (default: 200000)
 - `--mode <mode>` — `safe` or `auto-accept` (default: `safe`)
 
+**Options for `ptah setup`:**
+- `--tool <tool>` — Target AI tool: `gemini-cli` or `claude-code` (default: `gemini-cli`)
+
 ### Skill Commands (run inside AI tool)
 
 | Skill | Description | Status |
@@ -39,17 +45,18 @@ Display the following command reference:
 | `ptah:help` | Show this reference | ✓ Available |
 | `ptah:init` | Interactive project setup guide | ✓ Available |
 | `ptah:status` | Show workspace status | ✓ Available |
-| `ptah:register` | Register a repository | 🔜 Phase 2 |
-| `ptah:learn` | Scan ecosystem structure | 🔜 Phase 2 |
-| `ptah:discover` | Discover cross-repo contracts | 🔜 Phase 2 |
-| `ptah:plan` | Generate task plans | 🔜 Phase 3 |
-| `ptah:execute` | Execute task plans | 🔜 Phase 4 |
-| `ptah:verify` | Verify completed work | 🔜 Phase 4 |
+| `ptah:register` | Register a repository | ✓ Available |
+| `ptah:learn` | Scan ecosystem structure | ✓ Available |
+| `ptah:discover` | Discover cross-repo contracts | ✓ Available |
+| `ptah:plan` | Generate task plans | ✓ Available |
+| `ptah:execute` | Execute task plans | ✓ Available |
+| `ptah:verify` | Verify completed work | ✓ Available |
 
 ### Getting Started
 
 1. Install: `npm install -g ptah` (or use `npx ptah`)
-2. Create project: `ptah init my-project`
-3. Open your AI tool and start using skill commands
+2. Create project: `ptah init my-project --cli-tool claude-code`
+3. Skills are auto-installed during init
+4. Open your AI tool and start using skill commands
 
 </process>

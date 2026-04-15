@@ -5,7 +5,7 @@ description: Execute an approved Ptah cross-repo plan using native AI subagents.
 
 <objective>
 Execute the approved cross-repo plan by iterating through tasks in wave order.
-For each task, spawn a native subagent targeted at the correct repository,
+For each task, spawn a subagent targeted at the correct repository,
 then record the outcome via Ptah's CLI helpers.
 
 This skill is the core orchestration loop — it bridges Ptah's planning
@@ -21,6 +21,19 @@ Run `ptah status` to confirm:
 - An active plan exists with pending tasks
 
 If not ready, tell the user what's needed first.
+
+## Step 1.5: Check Permissions
+
+Before executing, verify write permissions:
+
+```bash
+ptah check-permission file_edit
+```
+
+Parse the JSON output:
+- If `"level": "deny"` — stop and inform the user that file edits are blocked by permission config.
+- If `"level": "confirm"` — ask the user for confirmation before proceeding.
+- If `"level": "auto"` — continue silently.
 
 ## Step 2: Execution Loop
 
@@ -51,30 +64,33 @@ The task JSON includes:
 - `task.wave` — current wave number
 - `task.depends_on` — prerequisite task IDs
 
-**Spawn a native subagent** (e.g. `Task()`) with these parameters:
+**Spawn a subagent** to work in `{task.repo_path}` with the following instructions:
 
-```
-Task(
-  prompt="Execute the following task in the repository at {task.repo_path}:
+> Execute the following task in the repository at {task.repo_path}:
+>
+> {task.description}
+>
+> IMPORTANT:
+> - Work ONLY within the repository at: {task.repo_path}
+> - Do NOT modify files outside this repository
+> - Commit your changes with a descriptive message
+> - Report what you changed when done
 
-{task.description}
+The subagent MUST operate in `{task.repo_path}` as its working directory.
 
-IMPORTANT:
-- Work ONLY within the repository at: {task.repo_path}
-- Do NOT modify files outside this repository
-- Commit your changes with a descriptive message
-- Report what you changed when done",
-
-  description="Ptah task {task.id}: {task.description}",
-  cwd="{task.repo_path}"
-)
-```
-
-> **CRITICAL**: Always pass `task.repo_path` as the working directory
-> for the subagent. This ensures cross-repo isolation — each subagent
+> **CRITICAL**: Always direct the subagent to `task.repo_path` as its
+> working directory. This ensures cross-repo isolation — each subagent
 > operates exclusively within its target repository.
 
 ### 2c. Record Outcome
+
+Before recording the outcome, check commit permission:
+
+```bash
+ptah check-permission git_commit
+```
+
+Handle `deny`/`confirm`/`auto` as in Step 1.5.
 
 **If the subagent succeeds:**
 ```bash
