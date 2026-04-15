@@ -13,12 +13,62 @@
 
 import { z } from 'zod';
 
+// ── Permission Schemas ─────────────────────────────────────────
+
+/**
+ * Permission level for a category of actions.
+ *
+ * - `auto`    — action proceeds without user interaction
+ * - `confirm` — user is prompted before the action executes
+ * - `deny`    — action is blocked entirely
+ */
+export const PermissionLevelSchema = z.enum(['auto', 'confirm', 'deny']);
+
+export type PermissionLevel = z.infer<typeof PermissionLevelSchema>;
+
+/**
+ * Role-based permission tiers controlling how Ptah handles different action categories.
+ *
+ * Defaults are conservative: reads are automatic, writes and destructive actions
+ * require confirmation. Users opt into more automation as they build trust.
+ */
+export const PermissionsSchema = z.object({
+  /** Status checks, config reads, plan viewing. */
+  read: PermissionLevelSchema.default('auto'),
+  /** File edits, git commits, branch creation. */
+  write: PermissionLevelSchema.default('confirm'),
+  /** Git push, branch deletion, state reset. */
+  destructive: PermissionLevelSchema.default('confirm'),
+});
+
+export type Permissions = z.infer<typeof PermissionsSchema>;
+
+/**
+ * Maps individual actions to their permission tier.
+ *
+ * Used by `ptah check-permission <action>` to look up which category
+ * an action belongs to, then check the configured permission level.
+ */
+export const PERMISSION_ACTION_MAP: Record<string, 'read' | 'write' | 'destructive'> = {
+  'status_check': 'read',
+  'config_read': 'read',
+  'plan_view': 'read',
+  'file_edit': 'write',
+  'git_commit': 'write',
+  'branch_create': 'write',
+  'git_push': 'destructive',
+  'branch_delete': 'destructive',
+  'state_reset': 'destructive',
+};
+
 // ── Project Config Schema ──────────────────────────────────────
 
 /**
  * Per-project configuration, stored at `~/.ptah/projects/<name>/config.json`.
  *
  * Controls which AI tool is used, token budget, and permission mode.
+ * The top-level `mode` field acts as a shorthand: `auto-accept` sets all
+ * permission tiers to `auto`, while `safe` defers to per-tier settings.
  */
 export const ProjectConfigSchema = z.object({
   /** Which AI CLI tool drives this project. */
@@ -27,6 +77,8 @@ export const ProjectConfigSchema = z.object({
   max_tokens: z.number().positive().default(200000),
   /** Permission mode: `safe` requires confirmation, `auto-accept` runs unattended. */
   mode: z.enum(['auto-accept', 'safe']).default('safe'),
+  /** Granular per-category permission overrides. Takes precedence when `mode` is `safe`. */
+  permissions: PermissionsSchema.default({}),
   /** ISO-8601 timestamp of when the project was created. */
   created_at: z.string().default(''),
   /** Ptah version that created this project. */

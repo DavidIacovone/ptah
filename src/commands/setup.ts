@@ -7,7 +7,8 @@
  * into the host AI tool's skills directory so they appear as `/ptah-*` commands.
  *
  * Supported targets:
- * - Gemini CLI: `~/.gemini/antigravity/skills/`
+ * - Gemini CLI:  `~/.gemini/antigravity/skills/`
+ * - Claude Code: `~/.claude/skills/`
  */
 
 import { existsSync, mkdirSync, cpSync, readdirSync } from 'node:fs';
@@ -22,6 +23,7 @@ const PACKAGE_SKILLS_DIR = join(__dirname, '..', 'skills');
 /** Known AI tool skill directories. */
 const SKILL_TARGETS: Record<string, string> = {
   'gemini-cli': join(homedir(), '.gemini', 'antigravity', 'skills'),
+  'claude-code': join(homedir(), '.claude', 'skills'),
 };
 
 /**
@@ -83,7 +85,12 @@ export async function runSetup(args: string[]): Promise<void> {
     }
   }
 
-  const toolDisplay = tool === 'gemini-cli' ? 'Gemini CLI' : tool;
+  const toolDisplayMap: Record<string, string> = {
+    'gemini-cli': 'Gemini CLI',
+    'claude-code': 'Claude Code',
+  };
+  const toolDisplay = toolDisplayMap[tool] || tool;
+  const skillPrefix = tool === 'claude-code' ? 'ptah:' : '/ptah-';
 
   console.log(`
 ✓ Ptah skills installed for ${toolDisplay}
@@ -94,8 +101,8 @@ export async function runSetup(args: string[]): Promise<void> {
   Total: ${skillDirs.length} skill(s)
 
   Skills available:
-${skillDirs.map((s) => `    /ptah-${s.replace('ptah-', '')}`).join('\n')}
+${skillDirs.map((s) => `    ${skillPrefix}${s.replace('ptah-', '')}`).join('\n')}
 
-  Type /${skillDirs[0]} in ${toolDisplay} to get started.
+  Type ${skillPrefix}${skillDirs[0]?.replace('ptah-', '') || 'help'} in ${toolDisplay} to get started.
 `);
 }

@@ -114,6 +114,12 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'check-permission': {
+      const { runCheckPermission } = await import('./commands/check-permission.js');
+      await runCheckPermission(args.slice(1));
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
@@ -160,6 +166,7 @@ COMMANDS
   verify-local      Run local repo tests (stub for v1)
   reset-state       Reset lifecycle to idle (escape hatch)
   setup             Install Ptah skills into your AI tool
+  check-permission  Check permission level for an action (JSON)
   help              Show this help message
 
 OPTIONS
