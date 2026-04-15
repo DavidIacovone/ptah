@@ -54,7 +54,7 @@ Display the following command reference:
 
 ### Getting Started
 
-1. Install: `npm install -g ptah` (or use `npx ptah`)
+1. Install: `npm install -g ptah-cli` (or use `npx ptah-cli`)
 2. Create project: `ptah init my-project --cli-tool claude-code`
 3. Skills are auto-installed during init
 4. Open your AI tool and start using skill commands

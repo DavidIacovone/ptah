@@ -8,13 +8,13 @@ Named after the Egyptian god of craftsmen — creation through thought and speec
 ## Install
 
 ```bash
-npm install -g ptah
+npm install -g ptah-cli
 ```
 
 Or use directly:
 
 ```bash
-npx ptah init my-project
+npx ptah-cli init my-project
 ```
 
 ## Quick Start
